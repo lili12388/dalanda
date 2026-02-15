@@ -1,84 +1,185 @@
-# AI Minds Hackathon - Personal Memory Assistant
+# Dalanda - AI Personal Memory Assistant
 
-An intelligent system that converts raw personal data into a structured, searchable memory.
+An intelligent RAG-powered personal assistant that converts your files (images, audio, documents) into a searchable memory and answers questions about your data with verified, grounded responses.
 
-## 🎯 Project Overview
+## 🎯 Overview
 
-This system:
+**Dalanda** is a multi-agent AI system that:
+
 1. **Ingests** files from multiple modalities (images, audio, documents)
-2. **Extracts** meaningful information using AI models
-3. **Stores** extractions as JSON + vector embeddings
-4. **Enables** semantic search over your personal data
-5. **Answers** questions with grounded, verified responses
+2. **Extracts** meaningful information using specialized AI models
+3. **Stores** extractions as JSON + FAISS vector embeddings
+4. **Enables** semantic search with intelligent filters
+5. **Answers** questions using a RAG pipeline with multi-agent verification
+6. **Provides** a modern React chat interface with voice input
+
+---
+
+## ✨ Key Features
+
+### Multi-Modal File Processing
+- **Images**: Vision analysis using Moondream (via Ollama) - extracts objects, scenes, text, people
+- **Audio**: Transcription using OpenAI Whisper - supports MP3, WAV, M4A, OGG, FLAC, WebM
+- **Documents**: Text extraction using PyMuPDF + Qwen2.5 - supports PDF, DOCX, TXT, MD
+
+### Intelligent RAG Pipeline
+- **Orchestrator**: Rule-based query parsing (no LLM overhead, ~5ms)
+  - Extracts date filters ("last week", "yesterday", "2 days ago")
+  - Extracts file type filters ("photos", "documents", "audio")
+  - Detects personal queries vs. content queries
+- **Vector Search**: FAISS-powered semantic search with metadata filtering
+- **Passage Extraction**: Smart passage selection based on query word density
+
+### Multi-Agent Architecture
+- **Text Agent (Phi-3.5)**: Generates answers from retrieved passages with citations
+- **Verifier Agent (Llama-3.2)**: Validates answers are grounded, assigns confidence scores
+- **Conversation Memory**: Sliding window (5 Q&A pairs) for context continuity
+
+### Modern Web Interface
+- React + Vite frontend with Tailwind CSS
+- 6 customizable themes (Ocean, Sunset, Forest, Galaxy, Fire, Midnight)
+- Voice input support using Whisper
+- Animated particle backgrounds
+- Conversation history with persistence
+- Real-time status indicators (thinking, verifying)
+
+### File Watcher
+- Auto-processes new files dropped into monitored folders
+- Supports watching multiple directories
+- Real-time extraction and vectorization
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         USER INTERFACE                              │
+│                   (React + Vite + Tailwind)                         │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │ HTTP/REST
+                               ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                         FASTAPI BACKEND                             │
+│                          (api.py)                                   │
+├─────────────────────────────────────────────────────────────────────┤
+│  /chat     - Main chat endpoint                                     │
+│  /voice    - Voice input (Whisper transcription)                    │
+│  /sources  - List available sources                                 │
+│  /upload   - File upload for processing                             │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        CHAT AGENT PIPELINE                          │
+│                        (chat_agent.py)                              │
+├─────────────────────────────────────────────────────────────────────┤
+│  1. ORCHESTRATOR  →  Parse query, extract filters (rule-based)      │
+│  2. RETRIEVER     →  Vector search + passage extraction             │
+│  3. TEXT AGENT    →  Generate answer (Phi-3.5)                      │
+│  4. VERIFIER      →  Check grounding (Llama-3.2)                    │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        DATA LAYER                                   │
+├─────────────────────────────────────────────────────────────────────┤
+│  FAISS Vector Store     │  JSON Extractions      │  Embeddings      │
+│  (index.faiss)          │  (data/extractions/)   │  (all-MiniLM)    │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 📁 Project Structure
 
 ```
-nxp_cup/
+dalanda/
+├── api.py                        # FastAPI backend server
+├── chat_agent.py                 # Main RAG pipeline with multi-agent
+├── main.py                       # CLI entry point for batch processing
+├── query_cli.py                  # Interactive CLI for testing queries
+├── watch_demo.py                 # File watcher for auto-processing
+├── extractor.py                  # Unified extractor interface
+├── requirements.txt              # Python dependencies
+├── setup.bat                     # Windows setup script
+│
 ├── config/
-│   └── settings.py              # Shared configuration
+│   └── settings.py               # Configuration (paths, extensions, limits)
 │
-├── extractors/                   # 🔥 EACH TEAM MEMBER OWNS ONE FILE
-│   ├── base_extractor.py        # Shared base class (DO NOT MODIFY)
-│   ├── image_extractor.py       # 👤 LAITH
-│   ├── audio_extractor.py       # 👤 TEAM MEMBER 2
-│   └── document_extractor.py    # 👤 TEAM MEMBER 3
+├── extractors/                   # Multi-modal extractors
+│   ├── base_extractor.py         # Abstract base class
+│   ├── image_extractor.py        # Moondream vision model
+│   ├── audio_extractor.py        # Whisper transcription
+│   └── document_extractor.py     # PDF/DOCX/TXT extraction
 │
-├── storage/                      # JSON file operations (SHARED)
-│   ├── json_store.py            
-│   └── schemas.py               
+├── models/                       # Model prompts and configs
+│   ├── image/prompts.py
+│   ├── audio/prompts.py
+│   └── document/prompts.py
 │
-├── vectorizer/                   # Embedding & search (SHARED)
-│   ├── embedder.py              
-│   └── vector_store.py          
+├── query/                        # Query pipeline components
+│   ├── orchestrator.py           # Query parsing & filter extraction
+│   ├── retriever.py              # Text Agent (Phi-3.5)
+│   ├── verifier.py               # Verifier Agent (Llama-3.2)
+│   └── memory.py                 # Conversation memory (sliding window)
 │
-├── watchers/                     # File monitoring (SHARED)
-│   └── file_watcher.py          
+├── storage/                      # Data persistence
+│   ├── json_store.py             # JSON file operations
+│   └── schemas.py                # Data schemas
 │
-├── query/                        # Query pipeline (TODO: LATER)
-│   ├── orchestrator.py          
-│   ├── retriever.py             
-│   └── verifier.py              
+├── vectorizer/                   # Vector embeddings & search
+│   ├── embedder.py               # Sentence-Transformers embeddings
+│   └── vector_store.py           # FAISS index management
 │
-├── data/                         # Generated data (gitignored)
-│   ├── extractions/             # JSON extraction files
-│   └── vectors/                 # FAISS index
+├── watchers/
+│   └── file_watcher.py           # File system monitoring
+│
+├── data/                         # Generated data
+│   ├── extractions/              # JSON extraction files
+│   │   ├── images/
+│   │   ├── audio/
+│   │   └── documents/
+│   └── vectors/                  # FAISS index + mapping
+│       ├── index.faiss
+│       └── index_map.json
 │
 ├── tests/                        # Test files
+│   ├── test_images/
+│   ├── test_audio/
+│   └── test_docs/
 │
-├── main.py                       # CLI entry point
-└── requirements.txt              # Dependencies
+└── user-interface/               # React frontend
+    ├── src/
+    │   ├── App.jsx               # Main app component
+    │   ├── components/
+    │   │   ├── MessageBubble.jsx
+    │   │   ├── Sidebar.jsx
+    │   │   ├── VoiceButton.jsx
+    │   │   ├── TypingIndicator.jsx
+    │   │   └── ParticleBackground.jsx
+    │   └── services/
+    │       ├── chatService.js     # API client
+    │       └── conversationStorage.js
+    ├── package.json
+    └── vite.config.js
 ```
-
----
-
-## 👥 Team Assignments
-
-| Team Member | File to Implement | Model |
-|-------------|-------------------|-------|
-| **Laith** | `extractors/image_extractor.py` | Qwen2.5-VL-3B |
-| **Member 2** | `extractors/audio_extractor.py` | Whisper + Qwen2.5-3B |
-| **Member 3** | `extractors/document_extractor.py` | PyMuPDF + Qwen2.5-3B |
-
-### What Each Person Does:
-
-1. Open your assigned file
-2. Look for `TODO` comments
-3. Implement the `extract()` method
-4. Test with sample files
-5. Commit and push
 
 ---
 
 ## 🚀 Getting Started
 
+### Prerequisites
+
+- Python 3.10+
+- Node.js 18+
+- Ollama (for LLM inference)
+
 ### 1. Clone & Setup
 
 ```bash
-git clone https://github.com/Ahmedd-Ben-Salah/Ai-Minds-Hackathon.git
-cd Ai-Minds-Hackathon
+git clone https://github.com/lili12388/dalanda.git
+cd dalanda
 
 # Create virtual environment
 python -m venv venv
@@ -86,153 +187,165 @@ source venv/bin/activate  # Linux/Mac
 # or
 .\venv\Scripts\activate   # Windows
 
-# Install dependencies
+# Install Python dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Test Your Setup
+### 2. Install Ollama & Models
 
 ```bash
-# Check if everything imports correctly
-python -c "from config.settings import ensure_directories; ensure_directories(); print('✓ Setup OK')"
+# Install Ollama from https://ollama.ai/download
+
+# Pull required models
+ollama pull phi3.5      # Text Agent (~2.2GB)
+ollama pull llama3.2    # Verifier (~2.0GB)
+ollama pull moondream   # Image extraction (~1.7GB)
+ollama pull qwen2.5:3b  # Document analysis (~2GB)
+
+# Start Ollama server (keep running)
+ollama serve
 ```
 
-### 3. Run Your Extractor Test
+### 3. Setup Frontend
 
 ```bash
-# For Laith (images):
-python -m extractors.image_extractor
-
-# For Member 2 (audio):
-python -m extractors.audio_extractor
-
-# For Member 3 (documents):
-python -m extractors.document_extractor
+cd user-interface
+npm install
 ```
 
----
+### 4. Run the Application
 
-## 📋 Output Format
-
-Each extractor outputs JSON files with this structure:
-
-```json
-{
-  "file_id": "img_a1b2c3d4",
-  "file_path": "/path/to/original/file",
-  "file_type": "image",
-  "file_hash": "md5hash...",
-  "extracted_at": "2026-02-14T10:30:00",
-  
-  "extraction": {
-    "description": "...",
-    "entities": { "people": [], "dates": [], ... },
-    "action_items": [ ... ],
-    ...
-  },
-  
-  "embedding_text": "Text used for vector search..."
-}
+**Terminal 1 - Backend:**
+```bash
+python api.py
+# Server starts on http://localhost:8000
 ```
 
-See `storage/schemas.py` for full schema details.
+**Terminal 2 - Frontend:**
+```bash
+cd user-interface
+npm run dev
+# UI available at http://localhost:5173
+```
 
----
-
-## 🔧 CLI Commands
+### 5. (Optional) Start File Watcher
 
 ```bash
-# Extract all files from a folder
-python main.py extract ./my_files
+# Watch Downloads folder
+python watch_demo.py
 
-# Extract only images
-python main.py extract ./pictures --type image
-
-# Search your memory
-python main.py search "meeting notes about project"
-
-# Search with filters
-python main.py search "contracts" --type document --top 10
-
-# Show statistics
-python main.py stats
-
-# Rebuild vector index
-python main.py rebuild
+# Watch custom folder
+python watch_demo.py "C:\path\to\folder"
 ```
 
 ---
 
-## 📂 Data Flow
+## 💬 Usage
 
-```
-Original Files          →    Extractors    →    JSON Files    →    Vectors
-─────────────────            ──────────         ──────────         ───────
-photo.jpg                    ImageExtractor     img_xxx.json       FAISS
-voice_note.mp3               AudioExtractor     aud_xxx.json       index
-report.pdf                   DocExtractor       doc_xxx.json
+### Chat Interface
+1. Open http://localhost:5173 in your browser
+2. Type questions about your files
+3. Use voice input by clicking the microphone button
+4. View confidence scores and source citations
+
+### Example Queries
+- "What documents did I download last week?"
+- "Summarize the PDF about machine learning"
+- "What's in my recent photos?"
+- "Find audio recordings from yesterday"
+
+### CLI Mode
+```bash
+# Interactive query mode
+python query_cli.py
+
+# Process files in a folder
+python main.py process /path/to/folder
+
+# Process specific file type
+python main.py process /path/to/folder --type image
 ```
 
 ---
 
-## ⚠️ Important Rules
+## 🔌 API Endpoints
 
-1. **DO NOT modify shared files** without team discussion:
-   - `base_extractor.py`
-   - `json_store.py`
-   - `schemas.py`
-   - `embedder.py`
-   - `vector_store.py`
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/chat` | POST | Send message and get response |
+| `/voice` | POST | Upload audio for transcription |
+| `/sources` | GET | List all indexed sources |
+| `/upload` | POST | Upload file for processing |
+| `/health` | GET | Health check |
 
-2. **Follow the schema** in `storage/schemas.py`
-
-3. **Test locally** before pushing
-
-4. **Use `embedding_text`** - this is what gets vectorized for search!
-
----
-
-## 🧪 Testing
-
-Put test files in:
-- `tests/test_images/` - for image testing
-- `tests/test_audio/` - for audio testing
-- `tests/test_docs/` - for document testing
-
----
-
-## 📦 Models to Download
-
-Each team member downloads their model:
-
-```python
-# Laith (Images):
-# Qwen2.5-VL-3B downloads automatically via transformers
-
-# Member 2 (Audio):
-# Whisper downloads automatically via openai-whisper
-
-# All (Embeddings):
-# BGE-small downloads automatically via sentence-transformers
+### Example API Call
+```bash
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What files did I add today?", "session_id": "user1"}'
 ```
+
+---
+
+## 🧠 Models Used
+
+| Component | Model | Size | Purpose |
+|-----------|-------|------|---------|
+| Text Agent | Phi-3.5 | ~2.2GB | Answer generation |
+| Verifier | Llama-3.2 | ~2.0GB | Answer verification |
+| Image Extraction | Moondream | ~1.7GB | Vision analysis |
+| Document Analysis | Qwen2.5:3b | ~2GB | Text summarization |
+| Audio Transcription | Whisper (base) | ~150MB | Speech-to-text |
+| Embeddings | all-MiniLM-L6-v2 | ~90MB | Vector embeddings |
+
+---
+
+## 🛠️ Tech Stack
+
+**Backend:**
+- Python 3.10+
+- FastAPI + Uvicorn
+- FAISS (vector search)
+- Sentence-Transformers
+- PyMuPDF, python-docx
+- OpenAI Whisper
+- Ollama (LLM inference)
+
+**Frontend:**
+- React 18
+- Vite
+- Tailwind CSS
+- Framer Motion
+- Lucide Icons
+
+---
+
+## 📝 Configuration
+
+Edit `config/settings.py` to customize:
+- Supported file extensions
+- Max file sizes
+- Extraction paths
+- Vector store settings
 
 ---
 
 ## 🤝 Contributing
 
-1. Pull latest: `git pull origin main`
-2. Create branch: `git checkout -b feature/your-name`
-3. Make changes
-4. Test: `python -m extractors.your_extractor`
-5. Commit: `git commit -am "Implement X"`
-6. Push: `git push origin feature/your-name`
-7. Create Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
-## 📞 Contact
+## 📄 License
 
-- **Repo**: https://github.com/Ahmedd-Ben-Salah/Ai-Minds-Hackathon
-- **Team**: AI Minds
+This project was created for the AI Minds Hackathon.
 
-Good luck! 🚀
+---
+
+## 👥 Team
+
+- **Dalanda** - AI Minds Hackathon Team
