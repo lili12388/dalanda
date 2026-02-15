@@ -1,0 +1,80 @@
+# AI Minds Hackathon - Dependencies
+# =============================================================================
+# QUICK SETUP (Run these commands in order)
+# =============================================================================
+#
+# 1. Install Python dependencies:
+#    pip install -r requirements.txt
+#
+# 2. Install Ollama (download from https://ollama.ai):
+#    Windows: Download and run installer from https://ollama.ai/download
+#    Linux:   curl -fsSL https://ollama.ai/install.sh | sh
+#    Mac:     brew install ollama
+#
+# 3. Pull required LLM models (run in terminal):
+#    ollama pull phi3.5
+#    ollama pull llama3.2
+#
+# 4. Start Ollama server (keep running in background):
+#    ollama serve
+#
+# 5. Install Node.js dependencies for UI:
+#    cd user-interface
+#    npm install
+#
+# 6. Run the app:
+#    Terminal 1: python api.py          (starts backend on port 8000)
+#    Terminal 2: cd user-interface && npm run dev  (starts UI on port 5173)
+#
+# =============================================================================
+
+# =============================================================================
+# CORE DEPENDENCIES (Everyone needs these)
+# =============================================================================
+numpy>=1.24.0
+faiss-cpu>=1.7.4
+sentence-transformers>=2.2.0
+
+# =============================================================================
+# IMAGE EXTRACTION (Laith)
+# =============================================================================
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.35.0
+accelerate>=0.24.0
+Pillow>=10.0.0
+qwen-vl-utils>=0.0.2
+
+# =============================================================================
+# AUDIO EXTRACTION (Team Member 2)
+# =============================================================================
+openai-whisper>=20231117
+
+# =============================================================================
+# DOCUMENT EXTRACTION (Team Member 3)
+# =============================================================================
+PyMuPDF>=1.23.0
+python-docx>=1.0.0
+
+# =============================================================================
+# FILE WATCHING
+# =============================================================================
+watchdog>=3.0.0
+
+# =============================================================================
+# UTILITIES
+# =============================================================================
+tqdm>=4.66.0
+python-dateutil>=2.8.0
+
+# =============================================================================
+# OPTIONAL: For LLM inference with llama.cpp
+# =============================================================================
+# llama-cpp-python>=0.2.0
+
+# =============================================================================
+# API SERVER (Required for UI)
+# =============================================================================
+fastapi>=0.104.0
+uvicorn>=0.24.0
+requests>=2.31.0
