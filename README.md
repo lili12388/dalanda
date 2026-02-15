@@ -345,7 +345,3 @@ Edit `config/settings.py` to customize:
 This project was created for the AI Minds Hackathon.
 
 ---
-
-## 👥 Team
-
-- **Dalanda** - AI Minds Hackathon Team
