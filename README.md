@@ -2,7 +2,7 @@
 
 An intelligent RAG-powered personal assistant that converts your files (images, audio, documents) into a searchable memory and answers questions about your data with verified, grounded responses.
 
-## 🎯 Overview
+## Overview
 
 **Dalanda** is a multi-agent AI system that:
 
@@ -15,7 +15,7 @@ An intelligent RAG-powered personal assistant that converts your files (images, 
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 ### Multi-Modal File Processing
 - **Images**: Vision analysis using Moondream (via Ollama) - extracts objects, scenes, text, people
@@ -50,7 +50,7 @@ An intelligent RAG-powered personal assistant that converts your files (images, 
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -91,7 +91,7 @@ An intelligent RAG-powered personal assistant that converts your files (images, 
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 dalanda/
@@ -167,7 +167,7 @@ dalanda/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -240,7 +240,7 @@ python watch_demo.py "C:\path\to\folder"
 
 ---
 
-## 💬 Usage
+##  Usage
 
 ### Chat Interface
 1. Open http://localhost:5173 in your browser
@@ -268,7 +268,7 @@ python main.py process /path/to/folder --type image
 
 ---
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -287,7 +287,7 @@ curl -X POST http://localhost:8000/chat \
 
 ---
 
-## 🧠 Models Used
+##  Models Used
 
 | Component | Model | Size | Purpose |
 |-----------|-------|------|---------|
@@ -300,7 +300,7 @@ curl -X POST http://localhost:8000/chat \
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 **Backend:**
 - Python 3.10+
@@ -320,7 +320,7 @@ curl -X POST http://localhost:8000/chat \
 
 ---
 
-## 📝 Configuration
+##  Configuration
 
 Edit `config/settings.py` to customize:
 - Supported file extensions
@@ -330,7 +330,7 @@ Edit `config/settings.py` to customize:
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -340,7 +340,7 @@ Edit `config/settings.py` to customize:
 
 ---
 
-## 📄 License
+##  License
 
 This project was created for the AI Minds Hackathon.
 
